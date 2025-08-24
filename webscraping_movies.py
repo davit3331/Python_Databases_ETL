@@ -4,8 +4,9 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 url = 'https://web.archive.org/web/20230902185655/https://en.everybodywiki.com/100_Most_Highly-Ranked_Films'
-db_name = 'Movies.db'  #So far a string db_name
-csv_path = '/Users/davitpiruzyan/Desktop/PY_Proj/top_50_films.csv' #A string that contains a path
+db_name = 'Movies.db'
+table_name = 'Top_50'  
+csv_path = 'top_50_films.csv' #A string that acts as the final csv file
 df = pd.DataFrame(columns=["Average Rank","Film","Year"]) #Creating an empty dataframe
 count = 0
 
@@ -54,5 +55,5 @@ df.to_csv(csv_path) #After the dataframe has been created, we save it to a CSV f
 
 #To store the required data in a database, you first need to initialize a connection to the database, save the dataframe as a table, and then close the connection
 conn = sqlite3.connect(db_name)
-df.to_sql(db_name, conn, if_exists='replace', index=False)
+df.to_sql(table_name, conn, if_exists='replace', index=False)
 conn.close()
