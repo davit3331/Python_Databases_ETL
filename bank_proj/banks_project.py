@@ -31,7 +31,7 @@ def extract(url: str, column_names:list) -> pd.DataFrame:
             for row in rows:
                 cols = row.find_all('td')
                 if(len(cols) != 0):
-                        dict_to_add = {'Name': cols[1].text.strip(), 'MC_USD_Billion': cols[2].text.strip()}
+                        dict_to_add = {'Name': cols[1].text[:-1], 'MC_USD_Billion': float(cols[2].text[:-1])} #float(cols[2].text[:-1]) to not include last character ('/n)
                         dataframe_to_add = pd.DataFrame(dict_to_add, index=[0])
                         bank_dataframe = pd.concat([bank_dataframe, dataframe_to_add], ignore_index=True)
 
@@ -58,25 +58,9 @@ def transform(extracted_dataframe: pd.DataFrame, csv_file : str) -> pd.DataFrame
 
     df = extracted_dataframe.copy()
 
-    #below we are making the MC_USD_Billion column into a float in 4 steps
-    # 1. Remove commas
-    df['MC_USD_Billion'] = df['MC_USD_Billion'].str.replace(',', '', regex=False)
-
-    # 2. Extract only the number part (ignore [1], notes, etc.)
-    df['MC_USD_Billion'] = df['MC_USD_Billion'].str.extract(r'([-+]?\d*\.?\d+)')[0]
-
-    # 3. Convert to float
-    df['MC_USD_Billion'] = df['MC_USD_Billion'].astype(float)
-
-    # 4. Round to 2 decimals
-    df['MC_USD_Billion'] = df['MC_USD_Billion'].round(2)
-
-    pd.set_option("display.float_format", "{:.2f}".format) #making sure it prints like this *.00 and not like this *.0
-
-    
     ###adding new columns to our dataset with their respective conversion
-    df['MC_GBP_Billion'] = (df['MC_USD_Billion'] * EUR_conversion).round(2)
-    df['MC_EUR_Billion'] = (df['MC_USD_Billion'] * GBP_conversion).round(2)
+    df['MC_GBP_Billion'] = (df['MC_USD_Billion'] * GBP_conversion).round(2)
+    df['MC_EUR_Billion'] = (df['MC_USD_Billion'] * EUR_conversion).round(2)
     df['MC_INR_Billion'] = (df['MC_USD_Billion'] * INR_conversion).round(2)
 
     return df
@@ -138,7 +122,7 @@ run_query(sql_statement_1, connection)
 sql_statement_2 = f"SELECT AVG(MC_GBP_Billion) FROM Largest_banks"
 run_query(sql_statement_2, connection)
 
-sql_statement_3 = f"SELECT AVG(MC_GBP_Billion) FROM Largest_banks"
+sql_statement_3 = f"SELECT Name from Largest_banks LIMIT 5"
 run_query(sql_statement_3, connection)
 
 log_progress('Process Complete')
